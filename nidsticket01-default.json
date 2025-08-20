@@ -1,0 +1,27 @@
+{
+  "dsclients": {
+    "t1": {
+      "Address": "RN",
+      "FamiliMem": 3,
+      "GSDiv": "KR",
+      "ID": "1990",
+      "MobileNo": "0713663366",
+      "Name": "Esh",
+      "Occupation": "Software"
+    }
+  },
+  "teachers": {
+    "t1": {
+      "address": "ratnapura",
+      "email": "eshan@gmail.com",
+      "name": "Eshan",
+      "tp": 78845566
+    },
+    "t2": {
+      "address": "karavita",
+      "email": "shakila@gmail.com",
+      "name": "shakila",
+      "tp": 124548
+    }
+  }
+}

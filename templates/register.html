@@ -26,8 +26,8 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-        <li class="nav-item"><a class="nav-link active" href="#">Register</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
+        <li class="nav-item"><a class="nav-link active" href="">Register</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Services</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
       </ul>
@@ -38,7 +38,8 @@
 <div class="container my-5">
     <div class="card shadow p-4 mx-auto" style="max-width: 600px;">
       <h2 class="text-center mb-4">Registration Form</h2>
-      <form action="/submit-registration" method="post">
+      <form action="{{ url_for('register') }}" method="post">
+        
         <div class="mb-3">
           <label for="id_no" class="form-label">ID No:</label>
           <input type="text" class="form-control" id="id_no" name="id_no" required />
