@@ -1,6 +1,9 @@
+import firebase_admin, time
+
+
 from flask import Flask, render_template, request, redirect, url_for
-import firebase_admin
 from firebase_admin import credentials, db
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -75,6 +78,41 @@ def register_success():
 @app.route('/login')
 def login():
     return render_template('login.html')
+
+@app.route('/ticket', methods=['GET'])
+def ticket_form():
+    return render_template('ticket_form.html')
+
+# Route to handle form submission
+@app.route('/ticket', methods=['POST'])
+def ticket_submit():
+    current_time_iso = datetime.utcnow().isoformat()
+    ticket_data = {
+        'ticketID': request.form.get('ticketID'),
+        'visitedReason': request.form.get('visitedreason'),
+        'jobStatus': request.form.get('jobstatus'),
+        'dateandtime': current_time_iso
+    }
+
+
+    ref = db.reference('tickets')
+    
+    # Push the data to the database with a unique key
+    ref.push(ticket_data)
+
+
+    # Here you can save ticket_data to database, Firebase, etc.
+    print("Received ticket data:", ticket_data)
+    return redirect(url_for('ticket_form')) 
+
+@app.route('/ticketview')
+def view_tickets():
+    ref = db.reference('tickets')  # Your tickets node
+    tickets_data = ref.get()
+
+    # tickets_data is a dict with ticket keys and values
+    # Pass it to template to render
+    return render_template('tickets.html', tickets=tickets_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
