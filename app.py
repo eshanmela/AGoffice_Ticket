@@ -1,7 +1,7 @@
 import firebase_admin, time
 
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from firebase_admin import credentials, db
 from datetime import datetime
 
@@ -105,6 +105,20 @@ def ticket_submit():
     print("Received ticket data:", ticket_data)
     return redirect(url_for('ticket_form')) 
 
+@app.route('/ticketview/<ticket_id>', methods=['GET'])
+def get_ticket_by_id(ticket_id):
+    ref = db.reference('tickets')
+    # Query tickets where child 'ticketID' equals the given ticket_id
+    results = ref.order_by_child('ticketID').equal_to(ticket_id).get()
+
+    if results:
+        # results is a dict; return first matching ticket
+        first_ticket = next(iter(results.values()))
+        return jsonify(first_ticket)
+    else:
+        return jsonify({'error': 'Ticket not found'}), 404
+
+
 @app.route('/ticketview')
 def view_tickets():
     ref = db.reference('tickets')  # Your tickets node
@@ -113,6 +127,26 @@ def view_tickets():
     # tickets_data is a dict with ticket keys and values
     # Pass it to template to render
     return render_template('tickets.html', tickets=tickets_data)
+
+
+
+@app.route('/filter_tickets')
+def filter_tickets():
+    ref = db.reference('tickets')  # Your tickets node
+    tickets_data = ref.get()
+
+    # tickets_data is a dict with ticket keys and values
+    # Pass it to template to render
+    return render_template('filterTickets.html', tickets=tickets_data)
+
+@app.route('/ticketbyID')
+def ticketsbyID():
+    ref = db.reference('tickets')  # Your tickets node
+    tickets_data = ref.get()
+
+    # tickets_data is a dict with ticket keys and values
+    # Pass it to template to render
+    return render_template('ticketStatus.html', tickets=tickets_data)
 
 if __name__ == '__main__':
     app.run(debug=True)

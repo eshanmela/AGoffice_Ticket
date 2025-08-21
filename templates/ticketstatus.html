@@ -41,32 +41,56 @@
 
 
   <div class="container mt-4">
-    <h2>All Tickets</h2>
-    {% if tickets %}
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Ticket ID</th>
-            <th>Visited Reason</th>
-            <th>Job Status</th>
-            <th>Timestamp</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for key, ticket in tickets.items() %}
-            <tr>
-              <td>{{ ticket.ticketID }}</td>
-              <td>{{ ticket.visitedReason }}</td>
-              <td>{{ ticket.jobStatus }}</td>
-              <td>{{ ticket.dateandtime}}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p>No tickets found.</p>
+    <h2>Tickets Filteref</h2>
+
+
+    <div>
+        
+        <form method="get" action="/ticketview">
+        <label for="ticket_ID">ticketID</label>
+        {% if tickets %}
+        <select id="ticketID" name="ticketID">
+            {% for key, ticket in tickets.items() %}
+            <option value="{{ ticket.ticketID }}">{{ ticket.ticketID }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary w-100">Search</button>
+        {% else %}
+        <p>No tickets found.</p>
+        {% endif %}
+        </form>
+
+        
+        {% if first_ticket %}
+    <h3 class="mt-5">Ticket Details</h3>
+    <table class="table table-bordered mt-3">
+      <tbody>
+        <tr>
+          <th>Ticket ID</th>
+          <td>{{ first_ticket.ticketID }}</td>
+        </tr>
+        <tr>
+          <th>Visited Reason</th>
+          <td>{{ first_ticket.visitedreason }}</td>
+        </tr>
+        <tr>
+          <th>Job Status</th>
+          <td>{{ first_ticket.jobstatus }}</td>
+        </tr>
+        <tr>
+          <th>Date and Time</th>
+          <td>{{ first_ticket.dateandtime }}</td>
+        </tr>
+      </tbody>
+    </table>
+    {% elif first_ticket is not none %}
+    <p class="mt-5 text-danger">No ticket found with the provided Ticket ID.</p>
     {% endif %}
-  </div>
+
+
+
+
+   
 
 
   
