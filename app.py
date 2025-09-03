@@ -1,12 +1,11 @@
 import firebase_admin, time
 
-
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 from firebase_admin import credentials, db
 from datetime import datetime
 
 app = Flask(__name__)
-
+app.secret_key = "AIzaSyD9HClMIavq24aHR6hmPWGdV5dkx7BgBg8"
 # Initialize Firebase Admin with your service account JSON file and database URL
 cred = credentials.Certificate('nidsticket01-firebase.json')  # replace with your file path
 firebase_admin.initialize_app(cred, {
@@ -47,7 +46,38 @@ def register():
         return redirect(url_for('register'))
     return render_template('register.html')
 
+#Update Ticket class
+@app.route('/edit_ticket/<ticket_id>', methods=['GET', 'POST'])
+def edit_ticket(ticket_id):
+    ref = db.reference('tickets').child(ticket_id)
 
+    if request.method == 'POST':
+        # Get form data
+        visitedreason = request.form.get('visitedreason')
+        jobstatus = request.form.get('jobstatus')
+        dateandtime = request.form.get('dateandtime')
+
+        update_data = {
+            'visitedreason': visitedreason,
+            'jobstatus': jobstatus,
+            'dateandtime': dateandtime,
+        }
+
+        # Update the ticket in Firebase
+        try:
+            ref.update(update_data)
+            flash('Ticket updated successfully!', 'success')
+            return redirect(url_for('home'))
+        except Exception as e:
+            flash(f'Error updating ticket: {str(e)}', 'danger')
+
+    # For GET request, retrieve the existing ticket data to pre-fill the form
+    ticket = ref.get()
+    if not ticket:
+        flash('Ticket not found.', 'warning')
+        return redirect(url_for('home'))
+
+    return render_template('updateTicket.html', ticket_id=ticket_id, ticket=ticket)
 
 # @app.route('/submit-registration', methods=['POST'])
 # def submit_registration():
@@ -105,27 +135,70 @@ def ticket_submit():
     print("Received ticket data:", ticket_data)
     return redirect(url_for('ticket_form')) 
 
-@app.route('/ticketview/<ticket_id>', methods=['GET'])
-def get_ticket_by_id(ticket_id):
-    ref = db.reference('tickets')
-    # Query tickets where child 'ticketID' equals the given ticket_id
-    results = ref.order_by_child('ticketID').equal_to(ticket_id).get()
+@app.route('/clientview/<ticket_id>', methods=['GET'])
+def clientview(ticket_id):
+    ref_tickets = db.reference('tickets')
+    results_tickets = ref_tickets.order_by_child('ticketID').equal_to(ticket_id).get()
 
-    if results:
-        # results is a dict; return first matching ticket
-        first_ticket = next(iter(results.values()))
-        return jsonify(first_ticket)
+    ref_jobs = db.reference('jobSummery')
+    results_jobs = ref_jobs.order_by_child('ticketid').equal_to(ticket_id).get()
+
+    if results_tickets:
+        first_ticket = next(iter(results_tickets.values()))
+        job_task_list = list(results_jobs.values())  # Convert dict_values to list to pass to template
+        return render_template('clientview.html', tickets=first_ticket, jobsummery=job_task_list)
     else:
-        return jsonify({'error': 'Ticket not found'}), 404
+        return "Ticket not found", 404
 
+# @app.route('/clientview/<ticket_id>', methods=['GET'])
+# def clientview(ticket_id):
+#     ref_tickets = db.reference('tickets')
+#     # Query tickets where child 'ticketID' equals the given ticket_id
+#     results_tickets = ref_tickets.order_by_child('ticketID').equal_to(ticket_id).get()
+
+#     ref_jobs = db.reference('jobSummery')
+#     results_jobs = ref_jobs.order_by_child('ticketid').equal_to(ticket_id).get()
+
+#     if results_tickets:
+#         # results is a dict; return first matching ticket
+#         first_ticket = next(iter(results_tickets.values()))
+#         first_jobtask = next(list(results_jobs.values()))
+#         # return jsonify(first_ticket)
+#         return render_template('clientview.html', tickets=first_ticket, jobsummery=first_jobtask)
+#     else:
+#         return jsonify({'error': 'Ticket not found'}), 404
+
+# def displayjobtasks(ticket_id):
+#     ref = db.reference('jobSummery')
+#     # Query tickets where child 'ticketID' equals the given ticket_id
+#     results = ref.order_by_child('ticketid').equal_to(ticket_id).get()
+
+#     if results:
+#         # results is a dict; return first matching ticket
+#         jobtasks = next(iter(results.values()))
+#         # return jsonify(first_ticket)
+#         return render_template('clientview.html', jobstatus=jobtasks)
+#     else:
+#         return jsonify({'error': 'Ticket not found'}), 404
+
+
+
+@app.route('/clientview_redirect')
+def clientview_redirect():
+    ticket_id = request.args.get('ticketid')
+    if ticket_id:
+        return redirect(url_for('clientview', ticket_id=ticket_id))
+    else:
+        return "Ticket ID required", 400
+    
 
 @app.route('/ticketview')
 def view_tickets():
     ref = db.reference('tickets')  # Your tickets node
     tickets_data = ref.get()
 
-    # tickets_data is a dict with ticket keys and values
-    # Pass it to template to render
+#     # tickets_data is a dict with ticket keys and values
+#     # Pass it to template to render
     return render_template('tickets.html', tickets=tickets_data)
 
 
